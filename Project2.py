@@ -20,11 +20,12 @@ def get_titles_from_search_results(filename):
     with open(filename, 'r') as f:
         contents = f.read()
         soup = BeautifulSoup(contents, 'html.parser')
-        x = [f.findChildren('span')[0].text for f in soup.find_all('a',{'class': 'bookTitle'})]
+        x = [f.findChildren('span')[0].text for f in soup.find_all('a', class_ = 'bookTitle')]
         tags = soup.find_all("tr", {"itemtype" : "http://schema.org/Book"})
+
         for tag in tags:
 
-            book_info.append((tag.find("a", {"class" : "bookTitle"}).findChildren("span", {"itemprop" : "name"})[0].text,tag.find("a", {"class" : "authorName"}).findChildren("span", {"itemprop" : "name"})[0].text))
+            book_info.append((tag.find("a", class_ = "bookTitle").findChildren("span", {"itemprop" : "name"})[0].text.strip(),tag.find("a", class_ = "authorName").findChildren("span", {"itemprop" : "name"})[0].text.strip()))
     
         return book_info
 
@@ -43,9 +44,24 @@ def get_search_links():
 
     """
 
-    
+    links = []
 
-    pass
+    url = "https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc"
+    main = "https://www.goodreads.com"
+    page = requests.get(url)
+
+    counter = 0
+
+    if page.ok:
+        soup = BeautifulSoup(page.content, 'html.parser')
+        tags = soup.find_all('a', class_ = 'bookTitle')
+
+        for tag in tags: 
+            if "/book/show" in tag.get('href', None) and counter < 10:
+                links.append(main + tag.get('href', None))
+                counter += 1
+
+    return links
 
 
 def get_book_summary(book_url):
@@ -61,6 +77,8 @@ def get_book_summary(book_url):
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
+
+    
 
     pass
 
@@ -144,18 +162,33 @@ class TestCases(unittest.TestCase):
         self.assertEqual(titles[-1][0], "Harry Potter: The Prequel (Harry Potter, #0.5)")
 
     def test_get_search_links(self):
+
+        links = get_search_links()
+
         # check that TestCases.search_urls is a list
+
+        self.assertEqual(type(links),list)
 
         # check that the length of TestCases.search_urls is correct (10 URLs)
 
+        self.assertEqual(len(links), 10)
 
         # check that each URL in the TestCases.search_urls is a string
+
+        for el in links:
+            self.assertEqual(type(el),str)
+
         # check that each URL contains the correct url for Goodreads.com followed by /book/show/
-        pass
+        
+        for el in links:
+            self.assertEqual("https://www.goodreads.com/book/show/" in el, True)
 
 
     def test_get_book_summary(self):
         # create a local variable – summaries – a list containing the results from get_book_summary()
+
+
+
         # for each URL in TestCases.search_urls (should be a list of tuples)
 
         # check that the number of book summaries is correct (10)
@@ -208,6 +241,7 @@ class TestCases(unittest.TestCase):
 
 if __name__ == '__main__':
     get_titles_from_search_results('search_results.htm')
+    get_search_links()
     # print(extra_credit("extra_credit.htm"))
     unittest.main(verbosity=2)
 
