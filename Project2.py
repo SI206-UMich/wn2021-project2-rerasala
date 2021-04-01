@@ -78,9 +78,21 @@ def get_book_summary(book_url):
     Make sure to strip() any newlines from the book title and number of pages.
     """
 
-    
+    page = requests.get(book_url)
 
-    pass
+    if page.ok:
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        title = soup.find('h1',{'id':'bookTitle'}).text.strip()
+
+        author_container = soup.find('div', class_ = 'authorName__container')
+        author = author_container.find('span').text.strip()
+
+        pages = soup.find('span', {'itemprop': 'numberOfPages'}).text.split(" ")
+        numPages = pages[0].strip()
+
+    
+    return (title, author, int(numPages))
 
 
 def summarize_best_books(filepath):
@@ -187,9 +199,11 @@ class TestCases(unittest.TestCase):
     def test_get_book_summary(self):
         # create a local variable – summaries – a list containing the results from get_book_summary()
 
-
+        summaries = []
 
         # for each URL in TestCases.search_urls (should be a list of tuples)
+
+
 
         # check that the number of book summaries is correct (10)
 
@@ -242,6 +256,7 @@ class TestCases(unittest.TestCase):
 if __name__ == '__main__':
     get_titles_from_search_results('search_results.htm')
     get_search_links()
+    get_book_summary(get_search_links()[0])
     # print(extra_credit("extra_credit.htm"))
     unittest.main(verbosity=2)
 
